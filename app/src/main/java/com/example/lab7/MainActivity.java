@@ -13,8 +13,8 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     //要用到的控件
-    private Button ok ;
-    private Button clear ;
+    private Button okBtn ;
+    private Button clearBtn ;
     private EditText newKey ;
     private EditText key ;
 
@@ -28,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ok = (Button) super.findViewById(R.id.ok);
-        clear = (Button) super.findViewById(R.id.clear);
+        okBtn = (Button) super.findViewById(R.id.okBtn);
+        clearBtn = (Button) super.findViewById(R.id.clearBtn);
         newKey = (EditText) findViewById(R.id.newKey);
         key = (EditText) findViewById(R.id.key);
 
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         resetUI();
 
-        ok.setOnClickListener(new View.OnClickListener(){
+        okBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 String newKeyStr =  newKey.getText().toString();
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        clear.setOnClickListener(new View.OnClickListener(){
+        clearBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 shareKey=sharedPreferences.getString("keyStr","");
@@ -83,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final Button reset =  (Button) super.findViewById(R.id.reset);
-        reset.setOnClickListener(new View.OnClickListener() {
+        final Button resetBtn =  (Button) super.findViewById(R.id.resetBtn);
+        resetBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -99,19 +99,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void resetUI(){
         //根据内容判断是否需要新密码框
-        if(shareKey.equals("")){
-            newKey.setVisibility(View.VISIBLE);
+        if(shareKey.equals("")){//第一次打开没有密码
+            newKey.setVisibility(View.VISIBLE);//第一个输入框可见
             key.setText("");
             key.setHint(R.string.hint2);
             newKey.setText("");
             newKey.setHint(R.string.hint1);
         }
-        else{
-            newKey.setVisibility(View.GONE);
+        else{//第二次打开有密码
+            newKey.setVisibility(View.GONE);//第一个输入框不可见
             key.setText("");
             key.setHint(R.string.hint3);
             newKey.setText("");
-            newKey.setHint(R.string.hint1);
+            newKey.setHint(R.string.hint1);//更换提示内容
         }
     }
 

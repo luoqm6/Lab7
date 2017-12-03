@@ -1,10 +1,12 @@
 package com.example.lab7;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,10 +14,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.R.attr.name;
+import static com.example.lab7.R.layout.file;
 
 /**
  * Created by qingming on 2017/11/30.
@@ -48,10 +54,21 @@ public class File extends AppCompatActivity {
         super.onPrepareOptionsMenu(menu);
         menu.clear();
         menu.add(Menu.NONE, Menu.NONE, 0,"所有文件如下：");
-        loadArray();
-        for(int i=0;i<fileNameList.size();i++) {
-            menu.add(Menu.NONE, Menu.NONE, 1,fileNameList.get(i));
+
+
+        //方法2：读取SharePreference中所有的文件名并且加入到menu中
+//        loadArray();
+//        for(int i=0;i<fileNameList.size();i++) {
+//            menu.add(Menu.NONE, Menu.NONE, 1,fileNameList.get(i));
+//        }
+
+        //方法1：
+
+        String[] files = this.fileList();
+        for(String file : files){
+            menu.add(Menu.NONE, Menu.NONE, 1,file);
         }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -61,17 +78,31 @@ public class File extends AppCompatActivity {
         String itemStr = item.getTitle().toString();
         if(itemStr.equals("所有文件如下：")) return true;
         fileName.setText(itemStr);
-        shareContent=sharedPreferences.getString(fileName.getText().toString(),null);
-        if(shareContent!=null) fileContent.setText(shareContent);
+        //方法2：读取SharePreference中文件名对应文件
+//        shareContent=sharedPreferences.getString(fileName.getText().toString(),null);
+//        if(shareContent!=null){
+//            fileContent.setText(shareContent);
+//            Toast.makeText(File.this,"Load successfully",Toast.LENGTH_SHORT).show();
+//        }
+        //方法1：读取file中文件名对应文件
+        try (FileInputStream fileInputStream = openFileInput(fileName.getText().toString())) {
+            byte[] contents = new byte[fileInputStream.available()];
+            fileInputStream.read(contents);
+            fileContent.setText(new String(contents));
+            Toast.makeText(File.this,"Load successfully",Toast.LENGTH_SHORT).show();
+        }
+        catch (IOException ex) {
+            Log.e("TAG", "Fail to read file.");
+            Toast.makeText(File.this,"Fail to load file!!!!!",Toast.LENGTH_SHORT).show();
+        }
         return true;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.file);
+        setContentView(file);
         sharedPreferences = File.super.getSharedPreferences("allFiles",MODE_PRIVATE);
-        //shareContent=sharedPreferences.getString("keyStr","");
 
         save = (Button) super.findViewById(R.id.save);
         load = (Button) super.findViewById(R.id.load);
@@ -82,16 +113,25 @@ public class File extends AppCompatActivity {
 
 
 
-
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int size = sharedPreferences.getInt("fileNameListSize", 0);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt("fileNameListSize",size+1);
-                editor.putString("fileName"+ String.valueOf(size),fileName.getText().toString());
-                editor.putString(fileName.getText().toString(),fileContent.getText().toString());
-                editor.commit();
+                //方法2：将文件名对应文件存入SharePreference中
+//                int size = sharedPreferences.getInt("fileNameListSize", 0);
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+//                editor.putInt("fileNameListSize",size+1);
+//                editor.putString("fileName"+ String.valueOf(size),fileName.getText().toString());
+//                editor.putString(fileName.getText().toString(),fileContent.getText().toString());
+//                editor.commit();
+
+                //方法1：存为file
+                try (FileOutputStream fileOutputStream = openFileOutput(fileName.getText().toString(), MODE_PRIVATE)) {
+                    fileOutputStream.write(fileContent.getText().toString().getBytes());
+                    Toast.makeText(File.this,"Save successfully",Toast.LENGTH_SHORT).show();
+                }
+                catch (IOException ex) {
+                    Toast.makeText(File.this,"Fail to save file.",Toast.LENGTH_SHORT).show();
+                }
                 Toast.makeText(File.this,"Save successfully",Toast.LENGTH_SHORT).show();
             }
         });
@@ -99,12 +139,25 @@ public class File extends AppCompatActivity {
         load.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                shareContent=sharedPreferences.getString(fileName.getText().toString(),null);
-                if(shareContent==null){
-                    Toast.makeText(File.this,"Fail to load file!!!!!",Toast.LENGTH_SHORT).show();
+                //方法2：读取SharePreference中文件名对应文件
+//                shareContent=sharedPreferences.getString(fileName.getText().toString(),null);
+//                if(shareContent==null){
+//                    Toast.makeText(File.this,"Fail to load file!!!!!",Toast.LENGTH_SHORT).show();
+//                }
+//                else {
+//                    fileContent.setText(shareContent);
+//                    Toast.makeText(File.this,"Load successfully",Toast.LENGTH_SHORT).show();
+//                }
+                //方法1：读取file中文件名对应文件
+                try (FileInputStream fileInputStream = openFileInput(fileName.getText().toString())) {
+                    byte[] contents = new byte[fileInputStream.available()];
+                    fileInputStream.read(contents);
+                    fileContent.setText(new String(contents));
+                    Toast.makeText(File.this,"Load successfully",Toast.LENGTH_SHORT).show();
                 }
-                else {
-                    fileContent.setText(shareContent);
+                catch (IOException ex) {
+                    Log.e("TAG", "Fail to read file.");
+                    Toast.makeText(File.this,"Fail to load file!!!!!",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -119,22 +172,30 @@ public class File extends AppCompatActivity {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.remove(fileName.getText().toString());
-                int size = sharedPreferences.getInt("fileNameListSize", 0);
-                for(int i=0;i<size;i++) {
-                    if(sharedPreferences.getString("fileName"+ String.valueOf(i), null).equals(fileName.getText().toString())){
-                        for(int j=i;j<size-1;j++){
-                            editor.putString("fileName"+ String.valueOf(j),sharedPreferences.getString("fileName"+String.valueOf(j+1), null));
-                            editor.commit();
-                        }
-                        editor.remove("fileName"+ String.valueOf(size-1));
-                        break;
-                    }
+                //方法2：删除SharePreference中文件名对应文件
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+//                editor.remove(fileName.getText().toString());
+//                int size = sharedPreferences.getInt("fileNameListSize", 0);
+//                for(int i=0;i<size;i++) {
+//                    if(sharedPreferences.getString("fileName"+ String.valueOf(i), null).equals(fileName.getText().toString())){
+//                        for(int j=i;j<size-1;j++){
+//                            editor.putString("fileName"+ String.valueOf(j),sharedPreferences.getString("fileName"+String.valueOf(j+1), null));
+//                            editor.commit();
+//                        }
+//                        editor.remove("fileName"+ String.valueOf(size-1));
+//                        break;
+//                    }
+//                }
+//                editor.putInt("fileNameListSize",size-1);
+//                editor.commit();
+//                Toast.makeText(File.this,"Delete successfully",Toast.LENGTH_SHORT).show();
+
+                //方法1：删除file中文件名对应文件
+                if(deleteFile(fileName.getText().toString())){
+                    Toast.makeText(File.this,"Delete successfully",Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(File.this,"Failed to delete file",Toast.LENGTH_SHORT).show();
                 }
-                editor.putInt("fileNameListSize",size-1);
-                editor.commit();
-                Toast.makeText(File.this,"Delete successfully",Toast.LENGTH_SHORT).show();
             }
         });
     }
