@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.menu.MainActivity" >
+
+    <!--
+                   很容易理解这个文件的作用，就是为菜单添加条目。一个item表示一个条目
+     -->
+
+    <item
+        android:id="@+id/menu_title"
+        android:title="所有文件如下"
+        />
+
+</menu>

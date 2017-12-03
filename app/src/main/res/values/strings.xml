@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Lab7</string>
+    <string name="hint1">New Password</string>
+    <string name="hint2">Confirm Password</string>
+    <string name="hint3">Password</string>
+    <string name="SButton1">OK</string>
+    <string name="SButton2">CLEAR</string>
+</resources>
